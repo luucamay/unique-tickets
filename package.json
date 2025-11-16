@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node backend/index.js",
     "dev": "node --env-file=.env backend/index.js",
-    "frontend": "cd frontend && npx serve -p 3000",
+    "frontend": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "frontend:serve": "cd frontend && npx serve dist -p 3000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["arkiv", "blockchain", "tickets", "event-management", "seat-booking"],
