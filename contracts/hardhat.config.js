@@ -21,16 +21,22 @@ module.exports = {
       url: "http://127.0.0.1:8545",
       chainId: 1337
     },
-    // Polkadot Hub TestNet
-    polkadotHub: {
-      url: "https://rpc.polkadot-hub-testnet.polkadot.io",
+    // Polkadot Asset Hub TestNet
+    passetHub: {
+      url: "https://testnet-passet-hub-eth-rpc.polkadot.io",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 1111, // Polkadot Hub TestNet Chain ID
+      chainId: 420420422, // Polkadot Asset Hub TestNet Chain ID
+      gasPrice: 20000000000 // 20 gwei
+    },
+    polkadotHub: {
+      url: "https://testnet-passet-hub-eth-rpc.polkadot.io",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 420420422, // Polkadot Asset Hub TestNet Chain ID
       gasPrice: 20000000000 // 20 gwei
     },
     // Other testnets
     sepolia: {
-      url: process.env.SEPOLIA_RPC_URL || "https://rpc.sepolia.org",
+      url: "https://1rpc.io/sepolia",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 11155111
     },
