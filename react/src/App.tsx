@@ -62,12 +62,6 @@ export default function App() {
       try {
         setIsLoading(true);
         const data = await loadDataWithFallback();
-        console.warn('API not available, using mock data:', error.message);
-        
-        // Fall back to mock data
-        return {
-            event: generateMockEventData(),
-            seats: generateMockSeatData()
         
         // Transform mock data to App types
         const transformedEvent = transformMockEventToAppEvent(data.event);
@@ -127,7 +121,7 @@ export default function App() {
   const removeFromCart = (seatIds: string[]) => {
     setCart((prevCart: CartItem[]) =>
       prevCart.map((item: CartItem) => ({
-        ...item,ithFallback
+        ...item,
         seats: item.seats.filter((seat: Seat) => !seatIds.includes(seat.id)),
       })).filter((item: CartItem) => item.seats.length > 0)
     );

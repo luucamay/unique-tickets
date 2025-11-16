@@ -28,12 +28,6 @@ export type MockEvent = {
 // Generate mock seat data (adapted from frontend/mock-data.js)
 export function generateMockSeatData(): MockSeat[] {
   const seats: MockSeat[] = [];
-        console.warn('API not available, using mock data:', error.message);
-        
-        // Fall back to mock data
-        return {
-            event: generateMockEventData(),
-            seats: generateMockSeatData()
   const totalRows = 10; // Smaller for testing
   const seatsPerRow = 15;
   
