@@ -1,7 +1,8 @@
-import { createWalletClient, http } from '@arkiv-network/sdk';
+import { createWalletClient, createPublicClient, http } from '@arkiv-network/sdk';
 import { mendoza } from '@arkiv-network/sdk/chains';
 import { privateKeyToAccount } from '@arkiv-network/sdk/accounts';
 import { ExpirationTime, jsonToPayload } from '@arkiv-network/sdk/utils';
+import { eq, gt } from '@arkiv-network/sdk/query';
 import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,15 +13,20 @@ if (!privateKey) {
   throw new Error("PRIVATE_KEY is not set in the .env file.");
 }
 
-// Initialize Arkiv client
+// Initialize Arkiv clients
 const account = privateKeyToAccount(privateKey);
-const client = createWalletClient({
+const walletClient = createWalletClient({
   chain: mendoza,
   transport: http(),
   account: account,
 });
 
-console.log(`Ticket Management Backend connected as: ${client.account.address}`);
+const publicClient = createPublicClient({
+  chain: mendoza,
+  transport: http(),
+});
+
+console.log(`Ticket Management Backend connected as: ${walletClient.account.address}`);
 
 // Express server setup
 const app = express();
@@ -59,6 +65,30 @@ function getSeatPrice(row) {
 // Helper function to generate seat ID
 function generateSeatId(row, column) {
   return `R${row.toString().padStart(2, '0')}-S${column.toString().padStart(2, '0')}`;
+}
+
+// Helper function to query seat status from Arkiv
+async function getSeatStatusFromArkiv(seatId) {
+  try {
+    const query = publicClient.buildQuery();
+    const seatEntities = await query
+      .where(eq('type', 'seat'))
+      .where(eq('seatId', seatId))
+      .withAttributes(true)
+      .fetch();
+
+    if (seatEntities && seatEntities.length > 0) {
+      // Get the most recent status (assumes the last entity is most recent)
+      const entity = seatEntities[seatEntities.length - 1];
+      const status = entity.attributes.find(attr => attr.key === 'status')?.value;
+      return status || 'available';
+    }
+    
+    return 'available'; // Default if no entity found
+  } catch (error) {
+    console.warn(`Failed to get seat status for ${seatId}:`, error);
+    return 'available'; // Default on error
+  }
 }
 
 // Initialize event seating on Arkiv blockchain
@@ -122,8 +152,10 @@ async function initializeEvent() {
     
     for (let i = 0; i < allPayloads.length; i += batchSize) {
       const batch = allPayloads.slice(i, i + batchSize);
-      const result = await client.mutateEntities({ creates: batch });
-      console.log(`Created batch ${Math.floor(i/batchSize) + 1}: ${result.createdEntities.length} entities`);
+      const results = await Promise.all(
+        batch.map(payload => walletClient.createEntity(payload))
+      );
+      console.log(`Created batch ${Math.floor(i/batchSize) + 1}: ${results.length} entities`);
     }
 
     console.log('Event initialization complete!');
@@ -138,22 +170,145 @@ async function initializeEvent() {
 // Get event information
 app.get('/api/event', async (req, res) => {
   try {
+    // Query Arkiv for event information
+    console.log('Querying Arkiv for event data...');
+    
+    const query = publicClient.buildQuery();
+    const eventEntities = await query
+      .where(eq('type', 'event'))
+      .withAttributes(true)
+      .withPayload(true)
+      .fetch();
+
+    let eventData = EVENT_CONFIG; // Default fallback
+
+    if (eventEntities && eventEntities.length > 0) {
+      try {
+        const eventEntity = eventEntities[0];
+        const arkivEventData = JSON.parse(eventEntity.payload);
+        
+        if (arkivEventData.eventType === 'event_info') {
+          // Use Arkiv data if available
+          eventData = {
+            name: arkivEventData.name || EVENT_CONFIG.name,
+            venue: arkivEventData.venue || EVENT_CONFIG.venue,
+            date: arkivEventData.date || EVENT_CONFIG.date,
+            time: arkivEventData.time || EVENT_CONFIG.time,
+            totalRows: EVENT_CONFIG.totalRows, // Keep config values for layout
+            seatsPerRow: EVENT_CONFIG.seatsPerRow,
+            priceMap: arkivEventData.priceCategories || EVENT_CONFIG.priceMap
+          };
+          
+          console.log('Successfully loaded event data from Arkiv');
+        }
+      } catch (parseError) {
+        console.warn('Failed to parse event entity from Arkiv, using config:', parseError);
+      }
+    } else {
+      console.log('No event data found in Arkiv, using config');
+    }
+
     res.json({
       success: true,
-      event: EVENT_CONFIG
+      event: eventData,
+      source: eventEntities?.length > 0 ? 'arkiv' : 'config'
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Error querying Arkiv for event:', error);
+    
+    // Fallback to config if Arkiv query fails
+    res.json({
+      success: true,
+      event: EVENT_CONFIG,
+      source: 'fallback',
+      warning: 'Arkiv query failed, using config data'
+    });
   }
 });
 
 // Get seat availability
 app.get('/api/seats', async (req, res) => {
   try {
-    // In a production system, we would query Arkiv for current seat status
-    // For now, we'll return a mock response showing the structure
+    // Query Arkiv for current seat status
+    console.log('Querying Arkiv for seat data...');
+    
+    const query = publicClient.buildQuery();
+    const seatEntities = await query
+      .where(eq('type', 'seat'))
+      .withAttributes(true)
+      .withPayload(true)
+      .fetch();
+
     const seats = [];
     
+    if (seatEntities && seatEntities.length > 0) {
+      console.log(`Found ${seatEntities.length} seat entities in Arkiv`);
+      
+      // Parse seat data from Arkiv entities
+      for (const entity of seatEntities) {
+        try {
+          const seatData = JSON.parse(entity.payload);
+          
+          // Extract seat info from the entity
+          const seatId = entity.attributes.find(attr => attr.key === 'seatId')?.value;
+          const row = parseInt(entity.attributes.find(attr => attr.key === 'row')?.value || '0');
+          const status = entity.attributes.find(attr => attr.key === 'status')?.value || 'available';
+          
+          if (seatData.seatType === 'seat_status' && seatId && row) {
+            seats.push({
+              seatId: seatId,
+              row: seatData.row || row,
+              column: seatData.column,
+              status: status,
+              category: seatData.category,
+              price: seatData.price
+            });
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse seat entity:', parseError);
+          continue;
+        }
+      }
+    }
+    
+    // If no seats found in Arkiv or parsing failed, fall back to generating seats
+    if (seats.length === 0) {
+      console.log('No seats found in Arkiv, generating default seat layout...');
+      
+      for (let row = 1; row <= EVENT_CONFIG.totalRows; row++) {
+        for (let column = 1; column <= EVENT_CONFIG.seatsPerRow; column++) {
+          const seatId = generateSeatId(row, column);
+          const { category, price } = getSeatPrice(row);
+          
+          seats.push({
+            seatId: seatId,
+            row: row,
+            column: column,
+            status: 'available',
+            category: category,
+            price: price
+          });
+        }
+      }
+    }
+
+    // Sort seats by row and column for consistent ordering
+    seats.sort((a, b) => {
+      if (a.row !== b.row) return a.row - b.row;
+      return a.column - b.column;
+    });
+
+    res.json({
+      success: true,
+      seats: seats,
+      source: seatEntities?.length > 0 ? 'arkiv' : 'generated'
+    });
+    
+  } catch (error) {
+    console.error('Error querying Arkiv for seats:', error);
+    
+    // Fallback to generated seats if Arkiv query fails
+    const seats = [];
     for (let row = 1; row <= EVENT_CONFIG.totalRows; row++) {
       for (let column = 1; column <= EVENT_CONFIG.seatsPerRow; column++) {
         const seatId = generateSeatId(row, column);
@@ -163,19 +318,19 @@ app.get('/api/seats', async (req, res) => {
           seatId: seatId,
           row: row,
           column: column,
-          status: 'available', // In production: query from Arkiv
+          status: 'available',
           category: category,
           price: price
         });
       }
     }
-
+    
     res.json({
       success: true,
-      seats: seats
+      seats: seats,
+      source: 'fallback',
+      warning: 'Arkiv query failed, using fallback data'
     });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -220,13 +375,16 @@ app.post('/api/seats/reserve', async (req, res) => {
       };
     });
 
-    const result = await client.mutateEntities({ creates: reservationPayloads });
+    const reservationResults = await Promise.all(
+      reservationPayloads.map(payload => walletClient.createEntity(payload))
+    );
     
     res.json({
       success: true,
       reservationId: reservationId,
       seats: seatIds,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      transactions: reservationResults.map(r => r.txHash)
     });
     
   } catch (error) {
@@ -271,13 +429,15 @@ app.post('/api/tickets/purchase', async (req, res) => {
       expiresIn: ExpirationTime.fromDays(365) // Tickets stored for 1 year
     };
 
-    const result = await client.mutateEntities({ creates: [purchasePayload] });
+    const purchaseResult = await walletClient.createEntity(purchasePayload);
     
     res.json({
       success: true,
       ticketId: ticketId,
       message: 'Tickets purchased successfully!',
-      transactionId: purchasePayload.payload.paymentInfo?.transactionId
+      transactionId: purchasePayload.payload.paymentInfo?.transactionId,
+      entityKey: purchaseResult.entityKey,
+      txHash: purchaseResult.txHash
     });
     
   } catch (error) {
@@ -313,6 +473,29 @@ app.get('/health', (req, res) => {
     status: 'Ticket Management API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Admin route to initialize event on Arkiv blockchain
+app.post('/api/admin/initialize', async (req, res) => {
+  try {
+    console.log('Admin requested event initialization...');
+    await initializeEvent();
+    
+    res.json({
+      success: true,
+      message: 'Event initialized successfully on Arkiv blockchain',
+      totalSeats: EVENT_CONFIG.totalRows * EVENT_CONFIG.seatsPerRow,
+      event: EVENT_CONFIG
+    });
+    
+  } catch (error) {
+    console.error('Admin initialization failed:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to initialize event on Arkiv blockchain',
+      details: error.message
+    });
+  }
 });
 
 // Start server
