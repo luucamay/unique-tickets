@@ -145,17 +145,55 @@ export async function loadDataWithFallback(): Promise<{
   event: MockEvent;
   seats: MockSeat[];
 }> {
+  const API_BASE_URL = 'http://localhost:3001';
+  
   try {
-    // In a real implementation, this would try to fetch from API first
-    // For now, we'll just use mock data directly
-    console.warn('Using mock data (API integration not implemented in React app yet)');
+    // Try to load from API first
+    console.log('Attempting to fetch from API...');
+    
+    const eventResponse = await fetch(`${API_BASE_URL}/api/event`);
+    if (!eventResponse.ok) throw new Error(`Event API failed: ${eventResponse.status}`);
+    
+    const eventData = await eventResponse.json();
+    if (!eventData.success) throw new Error(eventData.error || 'Failed to load event data');
+    
+    const seatsResponse = await fetch(`${API_BASE_URL}/api/seats`);
+    if (!seatsResponse.ok) throw new Error(`Seats API failed: ${seatsResponse.status}`);
+    
+    const seatsData = await seatsResponse.json();
+    if (!seatsData.success) throw new Error(seatsData.error || 'Failed to load seats data');
+    
+    console.log('Successfully loaded data from API');
+    console.log('Event Data:', eventData);
+    // Transform API data to match our mock data format
+    const transformedEvent: MockEvent = {
+      name: eventData.event.name,
+      venue: eventData.event.venue,
+      date: eventData.event.date,
+      time: eventData.event.time,
+      totalRows: eventData.event.totalRows,
+      seatsPerRow: eventData.event.seatsPerRow,
+      priceMap: eventData.event.priceMap
+    };
+    
+    const transformedSeats: MockSeat[] = seatsData.seats.map((seat: any) => ({
+      seatId: seat.seatId,
+      row: seat.row,
+      column: seat.column,
+      status: seat.status,
+      category: seat.category,
+      price: seat.price
+    }));
     
     return {
-      event: generateMockEventData(),
-      seats: generateMockSeatData()
+      event: transformedEvent,
+      seats: transformedSeats
     };
+    
   } catch (error) {
-    console.warn('Fallback to mock data:', error);
+    console.warn('API not available, using mock data:', error instanceof Error ? error.message : 'Unknown error');
+    
+    // Fall back to mock data
     return {
       event: generateMockEventData(),
       seats: generateMockSeatData()

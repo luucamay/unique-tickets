@@ -31,9 +31,9 @@ app.use(express.json());
 
 // Event configuration (in production, this could be a database)
 const EVENT_CONFIG = {
-  name: "Arkiv Conference 2025",
+  name: "Sub0 Conference 2025",
   venue: "Tech Convention Center",
-  date: "2025-12-15",
+  date: "2025-12-25",
   time: "10:00 AM",
   totalRows: 20,
   seatsPerRow: 25,
