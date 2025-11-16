@@ -1,4 +1,4 @@
-# IDEA-T-ON: Blockchain Ticket Management System
+# UTANA: Blockchain Ticket Management System (IDEA-T-ON)
 *Revolutionary event ticketing with NFT technology and Zero-Knowledge proof of humanity*
 
 Pitch Demo here: https://drive.google.com/drive/folders/1-3q7l6c5xOqGvdLFMwygEQ4_beFa261i?usp=sharing
