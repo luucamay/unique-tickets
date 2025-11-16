@@ -37,53 +37,44 @@
 ## 🚀 WHAT WE'LL SHIP IN 30 DAYS
 
 **Our MVP will do this:**
-Utana will enable secure event access through zero-knowledge proof of humanity, where community validators verify user identity without revealing personal information, creating soulbound access NFTs for cross-event recognition.
+Utana will demonstrate zero-knowledge proof of concept for identity verification, with a basic community validation system and prototype soulbound NFTs, proving the technical feasibility of privacy-preserving event access.
 
-### Features We'll Build (5 max)
+### Features We'll Build (3 core features)
 
-**Week 1-2:**
-- Feature: ZK Circuit Development & Biometric Privacy System
-- Why it matters: Core privacy-preserving identity verification without storing personal data
-- Who builds it: luucamay (Lead Developer) + ZK specialist consultant
+**Week 1-2: ZK Proof-of-Concept & Research Foundation**
+- Feature: Basic ZK circuit implementation using existing Noir templates + simple identity commitment system
+- Why it matters: Proves technical feasibility of privacy-preserving verification without building from scratch
+- Technical approach: Adapt existing Semaphore/WorldCoin circuits, focus on integration rather than novel cryptography
+- Deliverable: Working demo that generates and verifies ZK proofs for dummy identity data
 
-**Week 2-3:**
-- Feature: Community Validat
-### Team Breakdown
+**Week 3: Community Validation Prototype**
+- Feature: Simple validator interface + basic economic model simulation (testnet tokens)
+- Why it matters: Demonstrates community-driven verification concept with real user interaction
+- Technical approach: Build on existing NFT contract, add validator registry and simple voting mechanism
+- Deliverable: Functional validator dashboard where community can vote on verification requests
 
-**luucamay - Lead Developer & Product Owner** | 40 hrs/week
-- Owns: Overall architecture, smart contract development, API integration, project coordination
+**Week 4: Soulbound NFT Integration + Documentation**
+- Feature: Connect ZK proofs to soulbound NFT minting + comprehensive documentation/demo
+- Why it matters: Complete end-to-end flow from verification to event access token
+- Technical approach: Extend current ticket NFT contract with soulbound properties and ZK verification
+- Deliverable: Working prototype where verified users receive non-transferable access NFTs
 
-**ZK Cryptography Consultant** | 20 hrs/week
-- Owns: Noir circuit design, biometric privacy algorithms, proof generation optimization
+### Technical Risk Assessment & Mitigation
 
-**Frontend Developer** | 30 hrs/week
-- Owns: User interface for ZK enrollment, validator dashboard, mobile optimization
+**High Risk - ZK Circuit Complexity**
+- Risk: Building ZK circuits from scratch is extremely complex for 30-day timeline
+- Mitigation: Use proven templates (Semaphore, Tornado Cash patterns) and focus on integration
+- Fallback: Simplified proof-of-concept using hash commitments if full ZK proves too complex
 
-**Security Auditor** | 15 hrs/week
-- Owns: Smart contract security review, ZK circuit verification, attack vector analysis
-**luucamay - Lead Developer & Product Owner** | 40 hrs/week
-- Owns: Overall architecture, smart contract development, API integration, project coordination
+**Medium Risk - Community Bootstrapping**
+- Risk: No real community exists to test validator network
+- Mitigation: Create simulated validator accounts + recruit 10-15 beta testers from developer community
+- Fallback: Demo with bot validators showing the economic model concept
 
-**ZK Cryptography Consultant** | 20 hrs/week
-- Owns: Noir circuit design, biometric privacy algorithms, proof generation optimization
-
-**Frontend Developer** | 30 hrs/week
-- Owns: User interface for ZK enrollment, validator dashboard, mobile optimization
-
-**Security Auditor** | 15 hrs/week
-- Owns: Smart contract security review, ZK circuit verification, attack vector analysisor Network & Economic Model
-- Why it matters: Decentralized human verification through incentivized community participation
-- Who builds it: luucamay (Smart contracts) + Economics advisor
-
-**Week 3-4:**
-- Feature: Soulbound Identity NFT System & Cross-Event Integration
-- Why it matters: Verified humans get permanent identity tokens for seamless event access
-- Who builds it: luucamay (NFT contracts) + Frontend developer
-
-**Week 4:**
-- Feature: Production Deployment & Security Auditing
-- Why it matters: Mainnet readiness with verified security for real-world usage
-- Who builds it: luucamay (DevOps) + Security auditor
+**Low Risk - Smart Contract Integration** 
+- Risk: Integration bugs between ZK system and existing NFT contracts
+- Mitigation: Leverage existing working contract as foundation, add features incrementally
+- Fallback: Separate contracts that can be composed later if integration proves difficult
 
 ### Team Breakdown
 
@@ -98,30 +89,28 @@ Utana will enable secure event access through zero-knowledge proof of humanity, 
 
 ### Mentoring & Expertise We Need
 
-**Areas where we need support:**
-- Advanced zero-knowledge proof implementation and circuit optimization
-- Biometric template protection and liveness detection techniques
-- Community-driven governance and validator incentive design
-- Cross-chain interoperability for soulbound NFT recognition
+**Critical for success:**
+- ZK circuit guidance: 2-3 hours of expert consultation to validate approach and avoid major pitfalls
+- Community building advice: Marketing/product guidance to recruit initial validator beta testers
+- Security review: Automated tools + community code review for smart contract changes
 
-**Specific expertise we're looking for:**
-- Noir language expert for ZK circuit development and gas optimization
-- Cryptography researcher specializing in privacy-preserving identity systems
-- Behavioral economics advisor for validator participation incentive design
-- Substrate/Polkadot parachain deployment specialist for production scaling
+**Nice to have but not blocking:**
+- Advanced cryptography optimization (can improve in future iterations)
+- Professional UI/UX design (current functional design is sufficient for MVP)
+- Economic modeling expertise (simple token rewards sufficient for prototype)
 
 ---
 
 ## 🎯 WHAT HAPPENS AFTER
 
 **When M2 is done, we plan to...** 
-- Launch mainnet deployment on custom Polkadot parachain for production-scale ZK operations
-- Onboard initial community validators and establish governance for the verification network
-- Partner with major event organizers to integrate Utana's humanity verification system
-- Open-source the ZK identity framework for broader Web3 ecosystem adoption
+- Iterate on ZK circuit optimization based on prototype learnings and performance testing
+- Recruit and onboard 100+ real community validators through developer networks and events
+- Add biometric enrollment features and advanced anti-fraud detection mechanisms
+- Prepare for limited mainnet beta with select event organizers
 
 **And 6 months out we see our project achieve:**
-- 1000+ verified humans using soulbound identity NFTs across 10+ events
-- Self-sustaining validator economy with 1,00+ active community participants
-- Industry standard for privacy-preserving event access replacing traditional ID verification
-- Cross-platform integration enabling verified identity for DeFi, governance, and social applications beyond events 
+- 500+ verified humans using soulbound identity NFTs across 5+ pilot events
+- Self-sustaining validator community of 100+ active participants earning real rewards
+- Proven reduction in event fraud and improved attendee experience metrics
+- Partnership discussions with major ticketing platforms for integration opportunities 
