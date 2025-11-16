@@ -12,6 +12,12 @@ This ticket management system demonstrates how blockchain technology can revolut
 - **Admin Dashboard**: Complete management interface for event organizers
 - **Responsive Design**: Works perfectly on desktop and mobile devices
 
+## 🎨 **Design & Prototypes**
+
+**Live Design System**: [View on Figma](https://repeat-flag-46650164.figma.site/)
+
+Explore our complete design system including user interface mockups, user experience flows, component library, and design specifications for the IDEA-T-ON ticket management platform.
+
 ## 🏗️ **Architecture & Key Features**
 
 ### **NFT Smart Contract (Polkadot Asset Hub)**
@@ -478,6 +484,317 @@ This ticket management system is perfect for:
 - **Multi-language**: i18n support for international events
 - **Accessibility**: Enhanced screen reader support
 - **Performance**: Seat map virtualization for large venues
+
+## 🛡️ **IDEA-T-ON: Zero-Knowledge Proof of Humanity System**
+
+*A revolutionary approach to secure event access through community-validated identity verification*
+
+### 🏗️ **Technical Architecture**
+
+#### System Diagram
+
+```mermaid
+graph TD
+    A[User Wallet] --> B[ZK Identity Provider]
+    B --> C[Proof Generator]
+    C --> D[Community Validator Pool]
+    D --> E[Vote Aggregator]
+    E --> F[ZK Circuit Verifier]
+    F --> G[Access Token Minter]
+    G --> H[Event Entry System]
+    
+    B --> I[Biometric Hash Storage]
+    D --> J[Reputation Oracle]
+    F --> K[Polkadot Smart Contract]
+    K --> L[Event Access NFT]
+    
+    style C fill:#e1f5fe
+    style F fill:#f3e5f5
+    style K fill:#e8f5e8
+```
+
+#### Tech Stack
+
+**Frontend:**
+- **Framework**: Next.js 14 with TypeScript
+- **Web3**: Polkadot.js API + PAPI (Polkadot API)
+- **UI**: Tailwind CSS + shadcn/ui components
+- **ZK Integration**: @noir-lang/noir.js for client-side proof generation
+- **Identity**: WorldCoin SDK, Civic Pass, or custom biometric solution
+
+**Backend/Contracts:**
+- **Type**: ink! smart contracts on Polkadot + Substrate FRAME pallets
+- **Language**: Rust for contracts, TypeScript for API services
+- **Storage**: On-chain for proofs, IPFS for metadata, Arkiv for historical data
+- **ZK Circuits**: Noir language for zero-knowledge proofs
+- **Oracles**: Chainlink for external data, custom reputation oracle
+
+**Blockchain:**
+- **Chain**: Polkadot Asset Hub + Custom Parachain (for complex ZK operations)
+- **Tools**: SubQuery for indexing, Chopsticks for local testing
+- **Consensus**: BABE/GRANDPA with custom ZK verification pallet
+
+### 🔄 **How Data Flows**
+
+#### User Verification Journey
+1. **Identity Enrollment** →
+   - User connects wallet and provides biometric data
+   - System generates privacy-preserving biometric hash
+   - Creates anonymous identity commitment on-chain
+
+2. **Community Validation Request** →
+   - User requests humanity verification
+   - ZK proof of unique biometric submitted (without revealing identity)
+   - Request broadcast to validator community pool
+
+3. **Validator Participation** →
+   - Community validators review anonymized verification requests
+   - Validators stake tokens to participate in voting
+   - Multi-round voting with reputation weighting applied
+
+4. **Proof Generation & Verification** →
+   - Aggregated votes processed through ZK circuit
+   - System generates proof of community consensus
+   - Smart contract verifies ZK proof on-chain
+
+5. **Access Token Creation** →
+   - Verified humans receive soulbound access NFT
+   - NFT enables event entry without revealing identity
+   - Reputation score updated based on community feedback
+
+### 📋 **Implementation Roadmap**
+
+#### Phase 1: Foundation (Months 1-3)
+- [ ] **ZK Circuit Development**
+  - Design Noir circuits for identity verification
+  - Implement biometric hash privacy preservation
+  - Create vote aggregation and consensus circuits
+- [ ] **Basic Smart Contracts**
+  - ink! contract for identity commitments
+  - Validator registry and staking mechanism
+  - Reputation oracle integration
+- [ ] **Frontend MVP**
+  - Wallet connection and biometric enrollment
+  - Community validator interface
+  - Basic proof generation UI
+
+#### Phase 2: Community System (Months 4-6)
+- [ ] **Validator Economics**
+  - Token staking and slashing mechanisms
+  - Reputation scoring algorithm
+  - Reward distribution system
+- [ ] **Voting Infrastructure**
+  - Multi-round voting protocol
+  - Anonymous validator assignments
+  - Dispute resolution mechanism
+- [ ] **Integration Testing**
+  - End-to-end verification flows
+  - Performance optimization
+  - Security auditing
+
+#### Phase 3: Production & Scale (Months 7-12)
+- [ ] **Parachain Deployment**
+  - Custom parachain for ZK operations
+  - Cross-chain communication setup
+  - Mainnet deployment preparation
+- [ ] **Advanced Features**
+  - Machine learning fraud detection
+  - Batch verification optimization
+  - Mobile app development
+- [ ] **Ecosystem Integration**
+  - Event organizer dashboard
+  - Third-party integrations
+  - Community governance launch
+
+### 🔧 **Technical Implementation Details**
+
+#### ZK Circuit Architecture (Noir)
+```rust
+// Simplified circuit structure
+circuit HumanityVerification {
+    // Private inputs
+    private biometric_hash: Field,
+    private identity_secret: Field,
+    
+    // Public inputs  
+    public vote_threshold: u32,
+    public validator_count: u32,
+    
+    // Circuit logic
+    fn main(biometric_hash: Field, identity_secret: Field) {
+        // Verify unique biometric without revealing it
+        let identity_commitment = hash(biometric_hash, identity_secret);
+        
+        // Verify community vote consensus
+        let vote_result = verify_community_consensus(validator_votes, vote_threshold);
+        
+        // Generate proof of verified humanity
+        assert(vote_result == true);
+        assert(identity_commitment.is_valid());
+    }
+}
+```
+
+#### Smart Contract Integration (ink!)
+```rust
+#[ink::contract]
+mod humanity_verifier {
+    use ink::storage::Mapping;
+    
+    #[ink(storage)]
+    pub struct HumanityVerifier {
+        verified_humans: Mapping<AccountId, bool>,
+        validator_registry: Mapping<AccountId, ValidatorInfo>,
+        reputation_scores: Mapping<AccountId, u32>,
+    }
+    
+    #[ink(message)]
+    pub fn verify_humanity(&mut self, zk_proof: ZKProof) -> Result<(), Error> {
+        // Verify ZK proof on-chain
+        self.verify_zk_proof(zk_proof)?;
+        
+        // Mint soulbound access NFT
+        self.mint_access_nft()?;
+        
+        // Update reputation scores
+        self.update_validator_rewards()?;
+        
+        Ok(())
+    }
+}
+```
+
+#### Community Validator System
+- **Validator Selection**: Stake-weighted random selection with reputation factors
+- **Voting Mechanism**: Anonymous multi-round voting with cryptographic commitments
+- **Reputation Oracle**: ML-powered scoring based on validation accuracy
+- **Economic Incentives**: Token rewards for honest validation, slashing for malicious behavior
+
+### 🛡️ **Security & Privacy Model**
+
+#### Privacy Guarantees
+- **Biometric Privacy**: Original biometric data never stored or transmitted
+- **Identity Anonymity**: ZK proofs reveal verification status without identity
+- **Validator Anonymity**: Voting assignments use cryptographic shuffling
+- **Data Minimization**: Only essential verification data stored on-chain
+
+#### Attack Resistance
+- **Sybil Protection**: Biometric uniqueness + community validation
+- **Collusion Resistance**: Validator anonymity + reputation staking
+- **Replay Protection**: Cryptographic nonces and timestamp validation
+- **Privacy Attacks**: Zero-knowledge proofs prevent information leakage
+
+### 🎯 **User Experience Flow**
+
+#### For Event Attendees
+1. **One-Time Setup** (5 minutes)
+   - Download app, connect wallet
+   - Complete biometric enrollment (face/fingerprint scan)
+   - Submit to community validation queue
+
+2. **Community Validation** (24-48 hours)
+   - Receive notification when validation begins
+   - Track validation progress in real-time
+   - Get verified status notification
+
+3. **Event Access** (Instant)
+   - Purchase tickets using verified identity
+   - Generate entry QR code from soulbound NFT
+   - Enter event with privacy-preserving verification
+
+#### For Community Validators
+1. **Validator Registration**
+   - Stake minimum tokens (e.g., 1000 DOT)
+   - Complete validator training/onboarding
+   - Build reputation through accurate validations
+
+2. **Validation Process**
+   - Receive anonymous validation requests
+   - Review privacy-preserving verification evidence
+   - Submit weighted vote with stake commitment
+
+3. **Reputation & Rewards**
+   - Earn tokens for accurate validations
+   - Build reputation score over time
+   - Risk slashing for malicious behavior
+
+### 💰 **Economic Model**
+
+#### Token Economics
+- **Validation Fees**: Small fee (e.g., $5) paid by verification seekers
+- **Validator Rewards**: 70% of fees distributed to honest validators
+- **Protocol Treasury**: 20% for development and maintenance
+- **Slashing Pool**: 10% reserved for validator penalties
+
+#### Staking Requirements
+- **Minimum Stake**: 1000 DOT for validator participation
+- **Reputation Multiplier**: Higher reputation = lower stake requirement
+- **Slashing Conditions**: 10% stake loss for provably malicious voting
+
+### 🚀 **Integration with Existing System**
+
+The ZK humanity verification will integrate seamlessly with the current ticket management system:
+
+```mermaid
+graph LR
+    A[Current NFT Tickets] --> B[Humanity Verification Layer]
+    B --> C[Enhanced Access Control]
+    C --> D[Premium Event Features]
+    
+    B --> E[Community Validation]
+    E --> F[Soulbound Identity NFT]
+    F --> G[Cross-Event Recognition]
+```
+
+#### Enhanced Features
+- **Verified-Only Events**: Exclusive events requiring humanity proof
+- **Reputation-Based Pricing**: Discounts for high-reputation attendees
+- **Cross-Event Identity**: Verified status works across all events
+- **Community Governance**: Verified humans can vote on platform decisions
+
+### 📊 **Success Metrics**
+
+#### Technical KPIs
+- **Verification Accuracy**: >99% correct humanity determinations
+- **Proof Generation Time**: <30 seconds for ZK proof creation
+- **Validator Participation**: >1000 active community validators
+- **System Uptime**: 99.9% availability for verification requests
+
+#### User Experience KPIs
+- **Verification Completion Rate**: >90% of users complete verification
+- **Average Verification Time**: <48 hours from submission to approval
+- **User Satisfaction**: >4.5/5 rating for verification experience
+- **Fraud Prevention**: <0.1% false positives/negatives
+
+### 🔍 **Research & Development Areas**
+
+#### Advanced ZK Techniques
+- **Recursive SNARKs**: For scalable proof composition
+- **Multi-Party Computation**: For distributed validator coordination
+- **Homomorphic Encryption**: For privacy-preserving vote aggregation
+- **Verifiable Random Functions**: For fair validator selection
+
+#### Biometric Innovations
+- **Liveness Detection**: Preventing deepfake and photo attacks
+- **Template Protection**: Advanced biometric template security
+- **Multi-Modal Fusion**: Combining multiple biometric factors
+- **Edge Computing**: On-device biometric processing
+
+### 📚 **Technical Resources**
+
+#### Documentation & Guides
+- [Noir ZK Language Documentation](https://noir-lang.org/docs/)
+- [Polkadot ink! Contract Development](https://use.ink/)
+- [Substrate FRAME Pallet Development](https://docs.substrate.io/)
+- [Zero-Knowledge Proofs Explained](https://z.cash/technology/zksnarks/)
+
+#### Reference Implementations
+- [WorldCoin Protocol](https://worldcoin.org/blog/engineering) - ZK identity verification
+- [Semaphore](https://semaphore.appliedzkp.org/) - Anonymous signaling
+- [Tornado Cash](https://tornado.cash/) - Privacy-preserving transactions
+- [Aztec Network](https://aztec.network/) - ZK rollup implementation
+
+This comprehensive ZK humanity verification system will establish **IDEA-T-ON** as the premier platform for secure, privacy-preserving event access while maintaining the highest standards of security and user experience.
 
 ## 📚 **Learning Resources**
 
