@@ -750,23 +750,46 @@ body {
         gap: 15px;
     }
     
+    /* Stack legend and price blocks on mobile and tighten spacing */
     .price-categories {
         flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
     }
-    
+
     .legend-items {
-        justify-content: center;
-        gap: 15px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
     }
     
+    /* Slightly smaller seats for touch devices and less spacing */
     .seat {
-        width: 25px;
-        height: 25px;
-        font-size: 0.7rem;
+        width: 24px;
+        height: 24px;
+        font-size: 0.65rem;
     }
-    
+
     .seats-container {
         gap: 2px;
+    }
+
+    /* Make the seat map horizontally scrollable on small screens */
+    .seat-map {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 0;
+    }
+
+    /* Reduce aisle size on mobile */
+    .aisle {
+        width: 12px;
+        height: 20px;
+    }
+
+    /* Hide the right-side row label to save horizontal space */
+    .row-label-right {
+        display: none;
     }
     
     .row-label {
@@ -800,6 +823,11 @@ body {
         font-size: 2rem;
     }
     
+    /* Tighter layout for very small screens */
+    .container {
+        padding: 8px;
+    }
+
     .seat {
         width: 20px;
         height: 20px;
@@ -811,7 +839,16 @@ body {
     }
     
     .aisle {
-        width: 15px;
+        width: 10px;
+    }
+
+    .legend-items,
+    .price-categories {
+        align-items: center;
+    }
+
+    .modal-content {
+        padding: 15px;
     }
     
     .row-label {
