@@ -335,36 +335,6 @@ const nftTickets = await getCustomerNFTTickets(walletAddress);
 - **NFT Contract**: Proof of ownership and transfer capabilities
 - **Sync Process**: Regular reconciliation between both systems
 
-**Handling Race Conditions:**
-```javascript
-// Atomic reservation with timeout
-async function reserveSeats(seatIds, customerInfo) {
-  const tx = await arkivClient.beginTransaction();
-  
-  try {
-    // Check availability within transaction
-    const currentStatus = await tx.getEntities(seatIds);
-    const unavailable = currentStatus.filter(s => s.status !== 'available');
-    
-    if (unavailable.length > 0) {
-      throw new Error(`Seats ${unavailable.map(s => s.seatId)} no longer available`);
-    }
-    
-    // Reserve atomically
-    await tx.updateEntities(seatIds, { 
-      status: 'reserved',
-      reservedBy: customerInfo.email,
-      reservedAt: Date.now()
-    });
-    
-    await tx.commit();
-    return { success: true, reservationId: generateId() };
-  } catch (error) {
-    await tx.rollback();
-    throw error;
-  }
-}
-```
 
 ### Setup Requirements for Arkiv
 
