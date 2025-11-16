@@ -137,7 +137,269 @@ graph TD
 
 ---
 
-## 🚀 Current System Overview
+## 🔗 How Arkiv Network Powers This System
+
+**Arkiv Network** is a decentralized blockchain for storing structured data. In our ticket management system, Arkiv stores and manages all seat information, reservations, and event data.
+
+### What Arkiv Does in This Project
+
+1. **Seat Storage**: Each seat's availability status is stored on Arkiv blockchain
+2. **Reservations**: Temporary seat locks with automatic expiration  
+3. **Event Configuration**: Immutable event details and pricing tiers
+4. **Real-time Queries**: Find available seats by category, row, or status
+
+### Seat Data on Arkiv
+
+```javascript
+// How each seat is stored
+{
+  seatType: 'seat_status',
+  seatId: 'R01-S05',           // Row 1, Seat 5
+  status: 'available',         // available, reserved, sold
+  category: 'VIP',             // Pricing tier
+  price: 150,                  // Price in USD
+  timestamp: Date.now()
+}
+```
+
+### Key Arkiv Operations
+
+**Reserve Seats:**
+```javascript
+// Lock seats for 15 minutes during checkout
+await arkivClient.createEntity({
+  seatType: 'seat_reservation',
+  seatId: 'R01-S05',
+  status: 'reserved',
+  customerInfo: { name: 'John', email: 'john@example.com' },
+  expiresIn: '15 minutes'
+});
+```
+
+**Query Available Seats:**
+```javascript
+// Get all available VIP seats
+const vipSeats = await arkivClient.buildQuery()
+  .where(eq('seatType', 'seat_status'))
+  .where(eq('status', 'available'))
+  .where(eq('category', 'VIP'))
+  .fetch();
+```
+
+**Complete Purchase:**
+```javascript
+// Mark seats as sold + create ticket record
+await arkivClient.updateEntity(seatId, { status: 'sold' });
+await arkivClient.createEntity({
+  ticketType: 'ticket_purchase',
+  ticketId: 'uuid',
+  customerInfo: { /* customer data */ },
+  paymentInfo: { /* payment details */ }
+});
+```
+
+### Setup for Arkiv
+
+1. **Get Arkiv wallet** with testnet tokens
+2. **Add private key** to `.env` file:
+   ```env
+   PRIVATE_KEY=your_arkiv_wallet_private_key
+   ```
+3. **Arkiv SDK** handles all blockchain interactions automatically
+
+**That's it!** Arkiv provides the real-time seat management while NFTs handle ticket ownership.
+
+#### Seat Entity Structure
+```javascript
+// Each seat is stored as an entity on Arkiv blockchain
+const seatEntity = {
+  type: 'seat',                    // Entity type for querying
+  seatId: 'R01-S05',              // Unique identifier (Row 1, Seat 5)
+  row: 1,                         // Row number
+  column: 5,                      // Seat number in row
+  status: 'available',            // available|reserved|sold
+  category: 'VIP',                // Pricing tier
+  price: 150,                     // Price in USD
+  eventId: 'arkiv-conf-2025',     // Links to event
+  lastUpdated: 1700123456789      // Timestamp
+};
+```
+
+#### Reservation Process with Arkiv
+```javascript
+// 1. Reserve seats (temporary lock)
+const reservationEntity = {
+  type: 'reservation',
+  reservationId: 'uuid-abc123',
+  seatIds: ['R01-S05', 'R01-S06'],
+  customerEmail: 'user@example.com',
+  status: 'reserved',
+  expiresAt: Date.now() + (15 * 60 * 1000), // 15 minutes
+  createdAt: Date.now()
+};
+
+// Store on Arkiv blockchain
+await arkivClient.createEntity(reservationEntity);
+
+// 2. Query available seats in real-time
+const availableVIPSeats = await arkivClient.buildQuery()
+  .where(eq('type', 'seat'))
+  .where(eq('status', 'available'))
+  .where(eq('category', 'VIP'))
+  .where(eq('eventId', 'arkiv-conf-2025'))
+  .fetch();
+```
+
+#### Purchase Flow with Dual Storage
+```javascript
+// 3. Complete purchase (update Arkiv + mint NFT)
+async function completePurchase(reservationId, paymentInfo, walletAddress) {
+  // Update seat status on Arkiv
+  await arkivClient.updateEntity(seatId, { 
+    status: 'sold',
+    soldTo: walletAddress,
+    soldAt: Date.now()
+  });
+  
+  // Create ticket record on Arkiv
+  const ticketEntity = {
+    type: 'ticket',
+    ticketId: 'ticket-xyz789',
+    reservationId: reservationId,
+    seatIds: ['R01-S05', 'R01-S06'],
+    customerInfo: paymentInfo.customerInfo,
+    totalPrice: 300,
+    paymentMethod: paymentInfo.method,
+    purchaseTimestamp: Date.now()
+  };
+  await arkivClient.createEntity(ticketEntity);
+  
+  // Mint NFT on Polkadot (parallel storage)
+  const nftResult = await mintTicketNFT(walletAddress, seatIds, ticketId);
+  
+  return { arkivTicket: ticketEntity, nftToken: nftResult };
+}
+```
+
+### Arkiv Query Examples
+
+#### Real-time Seat Availability
+```javascript
+// Find all available seats for an event
+const seats = await client.buildQuery()
+  .where(eq('type', 'seat'))
+  .where(eq('eventId', 'arkiv-conf-2025'))
+  .where(eq('status', 'available'))
+  .ownedBy(VENUE_ADDRESS)
+  .fetch();
+
+// Group by category for pricing display
+const seatsByCategory = seats.reduce((acc, seat) => {
+  acc[seat.category] = acc[seat.category] || [];
+  acc[seat.category].push(seat);
+  return acc;
+}, {});
+```
+
+#### Purchase History & Analytics
+```javascript
+// Get all sales for revenue tracking
+const sales = await client.buildQuery()
+  .where(eq('type', 'ticket'))
+  .where(eq('eventId', 'arkiv-conf-2025'))
+  .ownedBy(VENUE_ADDRESS)
+  .fetch();
+
+const totalRevenue = sales.reduce((sum, ticket) => sum + ticket.totalPrice, 0);
+const soldSeats = sales.flatMap(ticket => ticket.seatIds);
+```
+
+#### Customer Ticket Lookup
+```javascript
+// Find all tickets purchased by a customer
+const customerTickets = await client.buildQuery()
+  .where(eq('type', 'ticket'))
+  .where(eq('customerInfo.email', 'user@example.com'))
+  .fetch();
+
+// Cross-reference with NFT ownership
+const nftTickets = await getCustomerNFTTickets(walletAddress);
+```
+
+### Data Consistency & Conflict Resolution
+
+**Dual Storage Strategy:**
+- **Arkiv**: Authoritative source for seat availability and business logic
+- **NFT Contract**: Proof of ownership and transfer capabilities
+- **Sync Process**: Regular reconciliation between both systems
+
+**Handling Race Conditions:**
+```javascript
+// Atomic reservation with timeout
+async function reserveSeats(seatIds, customerInfo) {
+  const tx = await arkivClient.beginTransaction();
+  
+  try {
+    // Check availability within transaction
+    const currentStatus = await tx.getEntities(seatIds);
+    const unavailable = currentStatus.filter(s => s.status !== 'available');
+    
+    if (unavailable.length > 0) {
+      throw new Error(`Seats ${unavailable.map(s => s.seatId)} no longer available`);
+    }
+    
+    // Reserve atomically
+    await tx.updateEntities(seatIds, { 
+      status: 'reserved',
+      reservedBy: customerInfo.email,
+      reservedAt: Date.now()
+    });
+    
+    await tx.commit();
+    return { success: true, reservationId: generateId() };
+  } catch (error) {
+    await tx.rollback();
+    throw error;
+  }
+}
+```
+
+### Setup Requirements for Arkiv
+
+#### 1. Arkiv Wallet Setup
+```bash
+# Install Arkiv CLI (if available)
+npm install -g @arkiv/cli
+
+# Or use web wallet: https://wallet.arkiv.network/
+# Get testnet tokens from faucet
+```
+
+#### 2. Environment Configuration
+```bash
+# Required in .env
+PRIVATE_KEY=0x1234567890abcdef...  # Your Arkiv wallet private key
+ARKIV_NETWORK=mendoza              # Testnet name
+ARKIV_RPC_URL=https://mendoza-rpc.arkiv.network
+```
+
+#### 3. SDK Integration
+```javascript
+// Initialize Arkiv client
+import { ArkivClient } from '@arkiv/sdk';
+
+const arkivClient = new ArkivClient({
+  privateKey: process.env.PRIVATE_KEY,
+  network: 'mendoza', // testnet
+  rpcUrl: process.env.ARKIV_RPC_URL
+});
+
+// Verify connection
+const networkInfo = await arkivClient.getNetworkInfo();
+console.log('Connected to Arkiv:', networkInfo);
+```
+
+This dual-blockchain approach (Arkiv + Polkadot) provides the best of both worlds: **structured data storage with querying capabilities** from Arkiv, and **standardized NFT ownership** from Polkadot Asset Hub.
 
 ### NFT Smart Contract (Polkadot Asset Hub)
 - **Contract Address**: `0x19493b940443b8f3dFFFD25E094f8EF48686B004`
