@@ -35,6 +35,84 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Smart Contract Configuration - Polkadot Hub Compatible
+const TICKET_NFT_CONTRACT_ADDRESS = process.env.TICKET_NFT_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000';
+
+// NFT Ticket Contract ABI - Polkadot Hub Compatible
+const TICKET_CONTRACT_ABI = [
+  {
+    "inputs": [{"internalType": "address", "name": "initialOwner", "type": "address"}],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "to", "type": "address"}],
+    "name": "safeMint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "to", "type": "address"},
+      {"internalType": "uint256[]", "name": "seatIds", "type": "uint256[]"},
+      {"internalType": "string", "name": "eventId", "type": "string"},
+      {"internalType": "uint256", "name": "price", "type": "uint256"}
+    ],
+    "name": "mintTicket",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "validateTicket",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "getTicketInfo",
+    "outputs": [
+      {"internalType": "uint256[]", "name": "seatIds", "type": "uint256[]"},
+      {"internalType": "string", "name": "eventId", "type": "string"},
+      {"internalType": "uint256", "name": "price", "type": "uint256"},
+      {"internalType": "bool", "name": "isValid", "type": "bool"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
+    "name": "getTicketsByOwner",
+    "outputs": [{"internalType": "uint256[]", "name": "", "type": "uint256[]"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "ownerOf",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "name",
+    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
+
 // Event configuration (in production, this could be a database)
 const EVENT_CONFIG = {
   name: "Sub0 Conference 2025",
