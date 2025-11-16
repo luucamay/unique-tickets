@@ -14,6 +14,14 @@ This ticket management system demonstrates how blockchain technology can revolut
 
 ## 🏗️ **Architecture & Key Features**
 
+### **NFT Smart Contract (Polkadot Asset Hub)**
+- **Contract Address**: `0x19493b940443b8f3dFFFD25E094f8EF48686B004`
+- **Network**: Polkadot Asset Hub TestNet (Chain ID: 420420422)
+- **Standard**: ERC721 with custom ticket functionality
+- **Features**: Ticket minting, validation, seat tracking, owner queries
+- **Deployment**: Successfully deployed on November 16, 2025
+- **Transaction**: `0x221571632a1c2fb8eaaba82fab9ab6bf4ce517ec570a9ab19190cd555b58624e`
+
 ### **Backend (Node.js + Express + Arkiv SDK)**
 - RESTful API for seat management and ticket sales
 - Direct integration with Arkiv blockchain for data storage
@@ -28,11 +36,13 @@ This ticket management system demonstrates how blockchain technology can revolut
 - Responsive design for all screen sizes
 - Accessible interface with keyboard navigation
 
-### **Blockchain Integration (Arkiv Network)**
+### **Blockchain Integration (Arkiv Network + NFT Smart Contract)**
 - **Seat Entities**: Each seat stored as individual blockchain entity
 - **Reservation System**: Time-limited reservations with auto-expiration
 - **Ticket Records**: Immutable purchase records with customer data
 - **Event Configuration**: Blockchain-stored event information
+- **NFT Tickets**: ERC721 tokens representing ticket ownership
+- **Smart Contract Features**: Minting, validation, transfer, metadata storage
 
 ## 🚀 **Quick Start**
 
@@ -53,7 +63,10 @@ Create a `.env` file in the root directory:
 ```env
 PRIVATE_KEY=your_arkiv_private_key_here
 PORT=3001
+TICKET_NFT_CONTRACT_ADDRESS=0x19493b940443b8f3dFFFD25E094f8EF48686B004
 ```
+
+**Note**: The NFT contract is already deployed on Polkadot Asset Hub TestNet. The contract address above enables NFT ticket minting alongside traditional ticket management.
 
 ### 3. Start the Backend
 ```bash
@@ -74,6 +87,61 @@ npm run frontend
 - **Customer Interface**: http://localhost:3000
 - **Admin Dashboard**: http://localhost:3000/admin.html
 - **API Health Check**: http://localhost:3001/health
+
+## 🎫 **NFT Smart Contract Deployment**
+
+### **Contract Information**
+- **Address**: `0x19493b940443b8f3dFFFD25E094f8EF48686B004`
+- **Network**: Polkadot Asset Hub TestNet
+- **Chain ID**: `420420422`
+- **RPC URL**: `https://testnet-passet-hub-eth-rpc.polkadot.io`
+- **Contract Name**: Event Tickets
+- **Symbol**: TICKET
+- **Standard**: ERC721 with custom extensions
+
+### **Deployment Details**
+- **Deployed**: November 16, 2025 at 13:27:12 UTC
+- **Deployer**: `0x534cC25e88D0F59f44D34575a32020211F5f3E1f`
+- **Transaction Hash**: `0x221571632a1c2fb8eaaba82fab9ab6bf4ce517ec570a9ab19190cd555b58624e`
+- **Gas Used**: ~105M gas units
+- **Status**: ✅ Successfully verified and functional
+
+### **Smart Contract Features**
+- **🎯 Custom Ticket Minting**: `mintTicket(address, uint256[], string, uint256)`
+- **✅ Ticket Validation**: `validateTicket(uint256)` - Mark tickets as used
+- **🔍 Ticket Information**: `getTicketInfo(uint256)` - Get seat details, price, validity
+- **👤 Owner Queries**: `getTicketsByOwner(address)` - Get all tickets for a customer
+- **🚫 Seat Protection**: `isSeatMinted(string, uint256)` - Prevent double-minting
+- **📊 Supply Tracking**: `getCurrentTokenId()`, `totalMinted()` - Analytics
+
+### **Integration Status**
+- **Backend Integration**: ✅ Complete - NFTs minted during ticket purchase
+- **Validation System**: ✅ On-chain ticket validation available
+- **Customer Lookup**: ✅ Query tickets by wallet address
+- **Metadata Support**: ✅ Rich ticket information stored on-chain
+
+### **Network Configuration**
+To interact with the contract, add Polkadot Asset Hub TestNet to your wallet:
+```json
+{
+  "chainId": 420420422,
+  "chainName": "Polkadot Asset Hub TestNet",
+  "nativeCurrency": {
+    "name": "PAS",
+    "symbol": "PAS",
+    "decimals": 18
+  },
+  "rpcUrls": ["https://testnet-passet-hub-eth-rpc.polkadot.io"],
+  "blockExplorerUrls": ["https://polkadot-asset-hub-testnet.subscan.io/"]
+}
+```
+
+### **Contract Source Code**
+The contract source code is available in `/contracts/contracts/TicketNFT.sol` and includes:
+- OpenZeppelin v5.0.0 compatibility
+- Polkadot Hub optimized deployment
+- Comprehensive test suite (13/13 tests passing)
+- Gas-optimized operations (~270K gas per mint)
 
 ## 📋 **Detailed Setup Guide**
 
@@ -127,8 +195,11 @@ const API_BASE_URL = 'http://localhost:3001';
 - `POST /api/seats/reserve` - Reserve seats temporarily
 
 #### **Ticket Operations**
-- `POST /api/tickets/purchase` - Complete ticket purchase
+- `POST /api/tickets/purchase` - Complete ticket purchase (+ mint NFT)
 - `GET /api/tickets/:ticketId` - Get ticket information
+- `POST /api/tickets/validate/:tokenId` - Validate NFT ticket
+- `GET /api/customers/:address/tickets` - Get customer's NFT tickets
+- `GET /api/nft/contract` - Get NFT contract information
 
 ### API Examples
 
@@ -145,7 +216,7 @@ curl -X POST http://localhost:3001/api/seats/reserve \
   }'
 ```
 
-#### Purchase Tickets
+#### Purchase Tickets (with NFT Minting)
 ```bash
 curl -X POST http://localhost:3001/api/tickets/purchase \
   -H "Content-Type: application/json" \
@@ -157,9 +228,21 @@ curl -X POST http://localhost:3001/api/tickets/purchase \
     },
     "customerInfo": {
       "name": "John Doe",
-      "email": "john@example.com"
+      "email": "john@example.com",
+      "walletAddress": "0x534cC25e88D0F59f44D34575a32020211F5f3E1f"
     }
   }'
+```
+
+#### Validate NFT Ticket
+```bash
+curl -X POST http://localhost:3001/api/tickets/validate/123 \
+  -H "Content-Type: application/json"
+```
+
+#### Get Customer's NFT Tickets
+```bash
+curl -X GET http://localhost:3001/api/customers/0x534cC25e88D0F59f44D34575a32020211F5f3E1f/tickets
 ```
 
 ## 🎨 **Frontend Features**
