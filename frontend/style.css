@@ -118,6 +118,24 @@ body {
     border: 1px solid #ddd;
 }
 
+/* Legend colors for seat-demo elements to match .seat state colors */
+.seat-demo.available {
+    background: #51cf66;
+    border-color: #40c057;
+}
+.seat-demo.selected {
+    background: #667eea;
+    border-color: #5a67d8;
+}
+.seat-demo.reserved {
+    background: #fd7e14;
+    border-color: #e8590c;
+}
+.seat-demo.sold {
+    background: #e64980;
+    border-color: #d6336c;
+}
+
 /* Price information */
 .price-info {
     background: white;
@@ -338,6 +356,19 @@ body {
 
 .seat.economy.available {
     background: linear-gradient(45deg, #fd7e14, #ff922b);
+}
+
+/* Ensure selected state overrides category-based backgrounds so the whole block changes */
+.seat.selected,
+.seat.vip.selected,
+.seat.premium.selected,
+.seat.standard.selected,
+.seat.economy.selected {
+    background: #667eea !important;
+    border-color: #5a67d8 !important;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
 /* Seat tooltip */
